@@ -14,7 +14,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: Linux",
 ]
-
+dependencies = ["aiofiles"]
 # [project.urls]
 # Homepage = "https://github.com/pypa/sampleproject"
 # Issues = "https://github.com/pypa/sampleproject/issues"
