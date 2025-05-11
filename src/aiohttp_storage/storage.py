@@ -120,7 +120,6 @@ class BaseStorage(AbstractStorage):
                 continue
             truncation = len(filename) - max_len
             if truncation > 0:
-                print(origin_path)
                 truncated_stem = origin_path.stem[:-truncation]
                 if not truncated_stem:
                     raise SuspiciousFileOperation(
@@ -149,26 +148,19 @@ class BaseStorage(AbstractStorage):
 
 
 class FileSystemStorage(BaseStorage):
-    def __init__(self, location: str | Path, base_url: str | None = None):
+    def __init__(self, location: str | Path, url_factory: Callable[[str], str]):
         self._location = location
-        self._base_url = base_url
+        self._url_factory = url_factory
 
     @cached_property
     def location(self) -> Path:
         return Path(self._location).resolve()
-
-    @cached_property
-    def base_url(self) -> str:
-        if not self._base_url:
-            raise ValueError("Invalid base_url")
-        return self._base_url.rstrip("/")
 
     async def exists(self, filename: str) -> bool:
         dst_path = safe_join(self.location, filename)
         return await run_async(os.path.lexists)(dst_path)
 
     async def _save(self, filename: str, data: BufferedIOBase) -> str:
-        print(filename)
         dst_path = Path(safe_join(self.location, filename))
         try:
             await aiofiles.os.makedirs(dst_path.parent, exist_ok=True)
@@ -180,7 +172,6 @@ class FileSystemStorage(BaseStorage):
                     await fd.write(data.read())
 
             except FileExistsError:
-                print("exists")
                 filename = await self.get_available_filename(filename)
                 dst_path = Path(safe_join(self.location, filename))
             else:
@@ -190,7 +181,7 @@ class FileSystemStorage(BaseStorage):
 
     async def url(self, filename: str) -> str:
         validate_file_name(filename, allow_relative_path=True)
-        return f"{self.base_url}/{filename.lstrip('/')}"
+        return self._url_factory(filename)
 
     async def delete(self, filename: str):
         if await self.exists(filename):
