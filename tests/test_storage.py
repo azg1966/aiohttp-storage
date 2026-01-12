@@ -61,21 +61,6 @@ class TestFileSystemStorage(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(await self.storage.exists(filename_0))
         self.assertFalse(await self.storage.exists(filename_1))
 
-    async def test_file_url(self):
-        filename = "some_file.txt"
-        with self.assertRaises(ValueError):
-            await self.storage.url(filename)
-        root_url = "http://some_example_host.test:8080/static/"
-        self.storage._base_url = root_url
-        self.assertEqual(
-            await self.storage.url("some_file.txt"),
-            f"{root_url.rstrip('/')}/{filename.lstrip('/')}",
-        )
-        with self.assertRaises(SuspiciousFileOperation):
-            await self.storage.url("some/../bad/filename.jpg")
-        await self.storage.url("some/relative/file.path")
-        await self.storage.url("some/relative/file.path")
-
 
 class SafeJoinTests(unittest.TestCase):
     def test_base_path_ends_with_sep(self):

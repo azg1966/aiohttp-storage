@@ -23,8 +23,7 @@ T = TypeVar("T")
 FILE_STORAGE_APP_KEY = "file_storage"
 
 
-class SuspiciousFileOperation(ValueError):
-    ...
+class SuspiciousFileOperation(ValueError): ...
 
 
 def get_valid_filename(name: str) -> str:
@@ -74,28 +73,21 @@ def run_async(func: Callable[P, T]) -> Callable[P, Awaitable[T]]:
 
 class AbstractStorage(metaclass=ABCMeta):
     @abstractmethod
-    async def save(self, filename: str, data: BufferedIOBase, max_len: int = 0) -> str:
-        ...
+    async def save(
+        self, filename: str, data: BufferedIOBase, max_len: int = 0
+    ) -> str: ...
 
     @abstractmethod
-    async def exists(self, filename: str) -> bool:
-        ...
+    async def exists(self, filename: str) -> bool: ...
 
     @abstractmethod
-    async def get_available_filename(self, filename: str, max_len: int = 0) -> str:
-        ...
+    async def get_available_filename(self, filename: str, max_len: int = 0) -> str: ...
 
     @abstractmethod
-    def get_alternative_stem(self, stem: str) -> str:
-        ...
+    def get_alternative_stem(self, stem: str) -> str: ...
 
     @abstractmethod
-    async def url(self, filename: str) -> str:
-        ...
-
-    @abstractmethod
-    async def delete(self, filename: str):
-        ...
+    async def delete(self, filename: str): ...
 
 
 class BaseStorage(AbstractStorage):
@@ -143,14 +135,10 @@ class BaseStorage(AbstractStorage):
     async def delete(self, filename: str):
         raise NotImplementedError
 
-    async def url(self, filename: str) -> str:
-        raise NotImplementedError
-
 
 class FileSystemStorage(BaseStorage):
-    def __init__(self, location: str | Path, url_factory: Callable[[str], str]):
+    def __init__(self, location: str | Path):
         self._location = location
-        self._url_factory = url_factory
 
     @cached_property
     def location(self) -> Path:
@@ -178,10 +166,6 @@ class FileSystemStorage(BaseStorage):
                 break
 
         return filename
-
-    async def url(self, filename: str) -> str:
-        validate_file_name(filename, allow_relative_path=True)
-        return self._url_factory(filename)
 
     async def delete(self, filename: str):
         if await self.exists(filename):
@@ -211,7 +195,3 @@ async def delete_file(request: web.Request, filename: str):
 
 async def file_exists(request: web.Request, filename: str) -> bool:
     return await get_storage(request).exists(filename)
-
-
-async def file_url(request: web.Request, filename: str) -> str:
-    return await get_storage(request).url(filename)
