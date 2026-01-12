@@ -7,7 +7,6 @@ from .storage import (
     save_file,
     file_exists,
     delete_file,
-    file_url,
     get_storage,
     FILE_STORAGE_APP_KEY,
 )
@@ -20,7 +19,6 @@ __all__ = [
     'save_file',
     'file_exists',
     'delete_file',
-    'file_url',
     'get_storage',
     'FILE_STORAGE_APP_KEY'
 ]
