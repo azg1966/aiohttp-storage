@@ -89,6 +89,9 @@ class AbstractStorage(metaclass=ABCMeta):
     @abstractmethod
     async def delete(self, filename: str): ...
 
+    @abstractmethod
+    async def remove_directory(self, dirname: str, recursive: bool = False): ...
+
 
 class BaseStorage(AbstractStorage):
     async def save(self, filename: str, data: BufferedIOBase, max_len: int = 0) -> str:
@@ -135,6 +138,9 @@ class BaseStorage(AbstractStorage):
     async def delete(self, filename: str):
         raise NotImplementedError
 
+    async def remove_directory(self, dirname: str, recursive: bool = False):
+        raise NotImplementedError
+
 
 class FileSystemStorage(BaseStorage):
     def __init__(self, location: str | Path):
@@ -171,6 +177,15 @@ class FileSystemStorage(BaseStorage):
         if await self.exists(filename):
             await aiofiles.os.unlink(safe_join(self.location, filename))
 
+    async def remove_directory(self, dirname: str, recursive: bool = False):
+        if await self.exists(dirname):
+            dirname = safe_join(self.location, dirname)
+            if recursive:
+                fnames = await aiofiles.os.listdir(dirname)
+                for fname in fnames:
+                    await aiofiles.os.unlink(safe_join(dirname, fname))
+            await aiofiles.os.rmdir(dirname)
+
 
 def setup(app: web.Application, storage: AbstractStorage):
     app[FILE_STORAGE_APP_KEY] = storage
@@ -195,3 +210,7 @@ async def delete_file(request: web.Request, filename: str):
 
 async def file_exists(request: web.Request, filename: str) -> bool:
     return await get_storage(request).exists(filename)
+
+
+async def remove_directory(request: web.Request, dirname: str, recursive: bool=False):
+    await get_storage(request).remove_directory(dirname, recursive=recursive)

@@ -60,6 +60,17 @@ class TestFileSystemStorage(unittest.IsolatedAsyncioTestCase):
         await self.storage.delete(filename_1)
         self.assertFalse(await self.storage.exists(filename_0))
         self.assertFalse(await self.storage.exists(filename_1))
+    async def test_rmdir(self):
+        content = BytesIO(b"Some initial bytes")
+        for i in range(5):
+            filename = f"test_dir/filename{i}.txt"
+            await self.storage.save(filename, content)
+            self.assertTrue(await self.storage.exists(filename))
+        self.assertTrue(await self.storage.exists("test_dir"))
+        with self.assertRaises(OSError):
+            await self.storage.remove_directory("test_dir")
+        await self.storage.remove_directory("test_dir", recursive=True)
+        self.assertFalse(await self.storage.exists("test_dir"))
 
 
 class SafeJoinTests(unittest.TestCase):
