@@ -66,6 +66,7 @@ class TestFileSystemStorage(unittest.IsolatedAsyncioTestCase):
             filename = f"test_dir/filename{i}.txt"
             await self.storage.save(filename, content)
             self.assertTrue(await self.storage.exists(filename))
+        await self.storage.save("test_dir/inner/fiename.txt", content)
         self.assertTrue(await self.storage.exists("test_dir"))
         with self.assertRaises(OSError):
             await self.storage.remove_directory("test_dir")

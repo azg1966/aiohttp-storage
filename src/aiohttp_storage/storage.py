@@ -1,6 +1,7 @@
 import asyncio
 import os
 import re
+import shutil
 import unicodedata
 from abc import ABCMeta, abstractmethod
 from functools import cached_property, partial, wraps
@@ -12,7 +13,6 @@ from typing import Awaitable, Callable, ParamSpec, TypeVar
 
 import aiofiles
 import aiofiles.os
-import aiofiles.ospath
 from aiohttp import web
 
 RANDOM_STRING_CHARS = ascii_letters + digits
@@ -181,10 +181,9 @@ class FileSystemStorage(BaseStorage):
         if await self.exists(dirname):
             dirname = safe_join(self.location, dirname)
             if recursive:
-                fnames = await aiofiles.os.listdir(dirname)
-                for fname in fnames:
-                    await aiofiles.os.unlink(safe_join(dirname, fname))
-            await aiofiles.os.rmdir(dirname)
+                await run_async(shutil.rmtree)(dirname)
+            else:
+                await aiofiles.os.rmdir(dirname)
 
 
 def setup(app: web.Application, storage: AbstractStorage):
